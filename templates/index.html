@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Weather App</h1>
+
+<!-- Button to get weather by geolocation -->
+<button id="geolocation-button">Get Weather by Location</button>
+
+<!-- Feedback message -->
+<p id="feedback-message"></p>
+
+<!-- Form to get weather by city name -->
+<form method="POST">
+    <input type="text" name="city" placeholder="Enter city name" required>
+    <button type="submit">Get Weather</button>
+</form>
+
+{% if weather %}
+    {% if weather.error %}
+        <p>{{ weather.error }}</p>
+    {% else %}
+        <h2>Weather in {{ weather['name'] }}</h2>
+        <p>Temperature: {{ weather['main']['temp'] }}°C</p>
+        <p>Description: {{ weather['weather'][0]['description'] }}</p>
+        <p>Humidity: {{ weather['main']['humidity'] }}%</p>
+        <p>Wind Speed: {{ weather['wind']['speed'] }} m/s</p>
+    {% endif %}
+{% endif %}
+
+<script>
+    document.getElementById('geolocation-button').addEventListener('click', function() {
+        const feedback = document.getElementById('feedback-message');
+        feedback.textContent = "Fetching your location...";
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                feedback.textContent = "Location found! Retrieving weather data...";
+
+                // Redirect to the Flask route with latitude and longitude as query parameters
+                window.location.href = `/?lat=${latitude}&lon=${longitude}`;
+            }, function(error) {
+                feedback.textContent = "Geolocation denied. Displaying default location weather.";
+                // Redirect to the Flask route with default location parameters
+                window.location.href = `/?lat=40.7128&lon=-74.0060`; // Default to New York City
+            });
+        } else {
+            feedback.textContent = "Geolocation is not supported by this browser. Displaying default location weather.";
+            // Redirect to the Flask route with default location parameters
+            window.location.href = `/?lat=40.7128&lon=-74.0060`; // Default to New York City
+        }
+    });
+</script>
+{% endblock %}
